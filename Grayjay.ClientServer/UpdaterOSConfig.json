@@ -2,7 +2,7 @@
 
   "Linux": {
     "Executables": [
-      "Grayjay",
+      "Bluejay",
       "cef/justcefnative",
       "ffmpeg"
     ],

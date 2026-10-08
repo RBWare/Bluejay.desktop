@@ -8,6 +8,7 @@ import grayjay from '../../../assets/grayjay.svg';
 
 import home from '../../../assets/icons/icon_nav_home.svg';
 import subscriptions from '../../../assets/icons/icon_nav_subscriptions.svg';
+import forYou from '../../../assets/icons/icon_nav_for_you.svg';
 import playlists from '../../../assets/icons/icon_nav_playlists.svg';
 import creators from '../../../assets/icons/icon_nav_creators.svg';
 import ic_sidebarOpen from '../../../assets/icons/sidebar-open.svg';
@@ -131,6 +132,7 @@ const SideBar: Component<SideBarProps> = (props: SideBarProps) => {
   };
   
   const homeBtn: ButtonItem = { icon: home, name: 'Home', path: '/web/home', getSelected: createMemo(() => location.pathname === '/web/home' || location.pathname === '/web/index.html'), autoPressOnFocus: false };
+  const forYouBtn: ButtonItem = { icon: forYou, name: 'For You', path: '/web/foryou', getSelected: createMemo(() => location.pathname === '/web/foryou'), autoPressOnFocus: false };
   const subscriptionsBtn: ButtonItem = { icon: subscriptions, name: 'Subscriptions', path: '/web/subscriptions', getSelected: createMemo(() => location.pathname === '/web/subscriptions'), autoPressOnFocus: false };
   const creatorsBtn: ButtonItem = { icon: creators, name: 'Creators', path: '/web/creators', getSelected: createMemo(() => location.pathname === '/web/creators'), autoPressOnFocus: false };
   const playlistsBtn: ButtonItem = { icon: playlists, name: 'Playlists', path: '/web/playlists', getSelected: createMemo(() => location.pathname === '/web/playlists'), autoPressOnFocus: false };
@@ -146,7 +148,7 @@ const SideBar: Component<SideBarProps> = (props: SideBarProps) => {
   const developerBtn: ButtonItem = { icon: iconLink, name: 'Developer', path: '/Developer/Index', getSelected: createMemo(() => location.pathname === '/Developer/Index'), onRightClick: () => LocalBackend.open(`http://${window.location.host}/Developer/Index`) };
   
   const topButtons$ = createMemo(() => {
-    let list: ButtonItem[] = [homeBtn, subscriptionsBtn, creatorsBtn, playlistsBtn];
+    let list: ButtonItem[] = [homeBtn, forYouBtn, subscriptionsBtn, creatorsBtn, playlistsBtn];
   
     if (video?.watchLater()?.length) {
       list.push(watchLaterBtn);
@@ -186,6 +188,8 @@ const SideBar: Component<SideBarProps> = (props: SideBarProps) => {
     getSelected: createMemo(() => location.pathname === '/web/buy')
   };
   const settingsBtn: ButtonItem = { icon: iconSettings, name: 'Settings', action: () => UIOverlay.overlaySettings(), getSelected: createMemo(() => location.pathname === '/web/settings') };
+  //Bluejay runs fullscreen without window controls, so the app needs its own way to quit (/window/Close stops the whole app)
+  const exitBtn: ButtonItem = { icon: iconExitToApp, name: 'Exit', action: () => WindowBackend.closeWindow(), getSelected: createMemo(() => false) };
 
   const bottomButtons$ = createMemo(() => {
     const list: ButtonItem[] = [];
@@ -195,6 +199,7 @@ const SideBar: Component<SideBarProps> = (props: SideBarProps) => {
     }
   
     list.push(settingsBtn);
+    list.push(exitBtn);
   
     return list;
   });
@@ -326,7 +331,7 @@ const SideBar: Component<SideBarProps> = (props: SideBarProps) => {
             <img src={grayjay} />
             <Show when={!isCollapsed()}>
               <div style="font-size: 20px; top: 2px; left: 60px; position: absolute;">
-              Grayjay
+              Bluejay
               </div>
             </Show>
             <Show when={!isCollapsed()}>

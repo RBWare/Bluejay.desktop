@@ -32,6 +32,7 @@ import { focusScope } from './focusScope';import ControllerOverlay from './compo
 
 const HomePage = lazy(() => import('./pages/Home'));
 const SubscriptionsPage = lazy(() => import('./pages/Subscriptions'));
+const ForYouPage = lazy(() => import('./pages/ForYou'));
 const CreatorsPage = lazy(() => import('./pages/Creators'));
 const PlaylistsPage = lazy(() => import('./pages/Playlists'));
 const PlaylistPage = lazy(() => import('./pages/Playlist'));
@@ -159,6 +160,7 @@ render(() => (
     <Route path="/web/home" component={HomePage} />
     <Route path="/web/search" component={SearchPage} />
     <Route path="/web/subscriptions" component={SubscriptionsPage} />
+    <Route path="/web/foryou" component={ForYouPage} />
     <Route path="/web/creators" component={CreatorsPage} />
     <Route path="/web/playlists" component={PlaylistsPage} />
     <Route path="/web/playlist" component={PlaylistPage} />

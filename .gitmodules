@@ -1,15 +1,15 @@
 [submodule "Grayjay.Engine.Temp"]
 	path = Grayjay.Engine
-	url = ../Grayjay.Engine.git
+	url = https://gitlab.futo.org/videostreaming/Grayjay.Engine.git
 [submodule "FUTO.MDNS"]
 	path = FUTO.MDNS
-	url = ../FUTO.MDNS.git
+	url = https://gitlab.futo.org/videostreaming/FUTO.MDNS.git
 [submodule "Grayjay.Engine"]
 	path = Grayjay.Engine
-	url = ../Grayjay.Engine.git
+	url = https://gitlab.futo.org/videostreaming/Grayjay.Engine.git
 [submodule "JustCef"]
 	path = JustCef
-	url = ../JustCef.git
+	url = https://gitlab.futo.org/videostreaming/JustCef.git
 [submodule "SyncServer"]
 	path = SyncServer
-	url = ../syncserver.git
+	url = https://gitlab.futo.org/videostreaming/syncserver.git

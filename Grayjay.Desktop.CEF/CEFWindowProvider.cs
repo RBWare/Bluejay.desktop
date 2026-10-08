@@ -37,8 +37,12 @@ namespace Grayjay.Desktop.CEF
                 preferredWidth: preferredWidth,
                 preferredHeight: preferredHeight,
                 title: title, 
-                iconPath: Utilities.FindFile("grayjay.png")
+                iconPath: Utilities.FindFile("grayjay.png"),
+                appId: "com.rbware.bluejay.desktop",
+                fullscreen: true,
+                resizable: false
             );
+            FullscreenWindows.KeepFullscreen(window);
 
             var windowResult = new Window(window);
             if(beforeLoad != null)

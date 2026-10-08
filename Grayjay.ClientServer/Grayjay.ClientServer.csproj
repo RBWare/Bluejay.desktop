@@ -11,6 +11,24 @@
     <AssemblyVersion>1.10.0.0</AssemblyVersion>
   </PropertyGroup>
 
+  <!-- Bluejay: record the official Grayjay release this build is based on (newest numeric upstream tag in history, "19-36-g..." -> 19) -->
+  <Target Name="BluejayGrayjayBaseVersion" BeforeTargets="GetAssemblyAttributes">
+    <Exec Command="git describe --tags --match &quot;[0-9]*&quot;" ConsoleToMSBuild="true" IgnoreExitCode="true" StandardOutputImportance="low" StandardErrorImportance="low">
+      <Output TaskParameter="ConsoleOutput" PropertyName="BluejayGitDescribe" />
+    </Exec>
+    <PropertyGroup>
+      <GrayjayBaseVersion>$([System.Text.RegularExpressions.Regex]::Match('$(BluejayGitDescribe)', '^\d+').Value)</GrayjayBaseVersion>
+      <GrayjayBaseVersion Condition="'$(GrayjayBaseVersion)' == ''">0</GrayjayBaseVersion>
+    </PropertyGroup>
+    <ItemGroup>
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+        <_Parameter1>GrayjayBaseVersion</_Parameter1>
+        <_Parameter2>$(GrayjayBaseVersion)</_Parameter2>
+      </AssemblyAttribute>
+    </ItemGroup>
+    <Message Importance="high" Text="Grayjay Base Version: $(GrayjayBaseVersion)" />
+  </Target>
+
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
     <DebugSymbols>False</DebugSymbols>
     <DebugType>None</DebugType>

@@ -27,11 +27,11 @@ namespace Grayjay.ClientServer
         public static string GetSelfExecutablePath()
         {
             if (OperatingSystem.IsWindows())
-                return Path.GetFileName("Grayjay.exe");
+                return Path.GetFileName("Bluejay.exe");
             else if (OperatingSystem.IsLinux())
-                return Path.GetFileName("Grayjay");
+                return Path.GetFileName("Bluejay");
             else if (OperatingSystem.IsMacOS())
-                return Path.GetFileName("../Grayjay.Desktop.app");
+                return Path.GetFileName("../Bluejay.Desktop.app");
             else throw new NotImplementedException();
         }
 
@@ -254,6 +254,20 @@ namespace Grayjay.ClientServer
                     return (false, updaterVersion);
             }
         }
+        public static int GetLatestVersion(string server)
+        {
+            try
+            {
+                using (WebClient client = new WebClient())
+                    return int.Parse(client.DownloadString(server + "/VersionLast.json"));
+            }
+            catch (Exception ex)
+            {
+                Logger.e(nameof(Updater), "Failed to get last version", ex);
+                return -1;
+            }
+        }
+
         public static int GetLatestMacOSVersion(string server)
         {
             try

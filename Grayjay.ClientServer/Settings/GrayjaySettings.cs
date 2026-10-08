@@ -1,4 +1,4 @@
-using Grayjay.ClientServer.States;
+﻿using Grayjay.ClientServer.States;
 using Grayjay.Desktop.POC;
 using Grayjay.Engine;
 using Grayjay.Engine.Setting;
@@ -332,7 +332,7 @@ namespace Grayjay.ClientServer.Settings
         public NotificationSettings Notifications { get; set; } = new NotificationSettings();
         public class NotificationSettings
         {
-            [SettingsField("App Updates", SettingsField.TOGGLE, "Enable app update notifications", 0)]
+            [SettingsField("Show Grayjay updates", SettingsField.TOGGLE, "Let you know when an official Grayjay release newer than the one Bluejay is based on comes out, so it can be merged in", 0)]
             public bool AppUpdates { get; set; } = true;
 
             [SettingsField("Plugin Updates", SettingsField.TOGGLE, "Enable plugin update notifications", 0)]

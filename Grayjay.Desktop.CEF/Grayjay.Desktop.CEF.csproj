@@ -9,7 +9,7 @@
     <SelfContained>true</SelfContained>
     <RuntimeIdentifiers>win-x86;win-x64;win-arm64;linux-x64;linux-arm;linux-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
     <ApplicationIcon>logo.ico</ApplicationIcon>
-    <AssemblyName>Grayjay</AssemblyName>
+    <AssemblyName>Bluejay</AssemblyName>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Release'">

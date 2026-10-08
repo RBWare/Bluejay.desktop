@@ -274,7 +274,7 @@ const SourcesPage: Component = () => {
         </div>
       </Show>
       <Show when={enabledSources$() && disabledSources$() && (enabledSources$()!.length + disabledSources$()!.length == 0)}>
-        <EmptyContentView icon={iconSources} title='You have no sources' description='Please install some sources to use Grayjay.' actions={[
+        <EmptyContentView icon={iconSources} title='You have no sources' description='Please install some sources to use Bluejay.' actions={[
             {
               icon: iconGrayjay,
               title: "Install Official Sources",

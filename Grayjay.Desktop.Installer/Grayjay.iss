@@ -1,26 +1,26 @@
 [Setup]
-AppId=Grayjay
-AppName=Grayjay
+AppId=Bluejay
+AppName=Bluejay
 AppVersion=1.0
-AppVerName=Grayjay
-AppPublisher=FUTO
-VersionInfoCompany=FUTO
-VersionInfoDescription=Grayjay Desktop Installer
+AppVerName=Bluejay
+AppPublisher=RBWare
+VersionInfoCompany=RBWare
+VersionInfoDescription=Bluejay Desktop Installer
 VersionInfoVersion=1.0
 AppCopyright=© 2025 FUTO
 
 AppPublisherURL=https://futo.org
-AppSupportURL=https://grayjay.app/support
-AppUpdatesURL=https://grayjay.app/download
+AppSupportURL=https://github.com/RBWare/Bluejay.desktop
+AppUpdatesURL=https://github.com/RBWare/Bluejay.desktop
 ArchitecturesInstallIn64BitMode=x64compatible
 ArchitecturesAllowed=win64
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
-AppMutex=GrayjayInstallerMutex
+AppMutex=BluejayInstallerMutex
 CloseApplications=yes
 
 DefaultDirName={code:GetInstallDir}
-DefaultGroupName=Grayjay
+DefaultGroupName=Bluejay
 DisableProgramGroupPage=yes
 
 LicenseFile=Metadata\LICENSE.rtf
@@ -30,9 +30,9 @@ SetupIconFile=Metadata\grayjay.ico
 
 Compression=lzma2
 SolidCompression=yes
-OutputBaseFilename=Grayjay-1.0.0-Setup-x64
+OutputBaseFilename=Bluejay-1.0.0-Setup-x64
 OutputDir=Output
-UninstallDisplayIcon={app}\Grayjay.exe
+UninstallDisplayIcon={app}\Bluejay.exe
 
 [Languages]
 Name: "en"; MessagesFile: "compiler:Default.isl"
@@ -52,12 +52,12 @@ Source: "Files\vc_redist.x64.exe"; Flags: dontcopy
 Source: "Metadata\grayjay.ico"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-Name: "{group}\Grayjay"; Filename: "{app}\Grayjay.exe"; IconFilename: "{app}\grayjay.ico"; WorkingDir: "{app}"; Comment: "Grayjay Desktop"
-Name: "{autodesktop}\Grayjay"; Filename: "{app}\Grayjay.exe"; IconFilename: "{app}\grayjay.ico"; WorkingDir: "{app}"; Comment: "Grayjay Desktop"; Tasks: desktopicon
+Name: "{group}\Bluejay"; Filename: "{app}\Bluejay.exe"; IconFilename: "{app}\grayjay.ico"; WorkingDir: "{app}"; Comment: "Bluejay Desktop"
+Name: "{autodesktop}\Bluejay"; Filename: "{app}\Bluejay.exe"; IconFilename: "{app}\grayjay.ico"; WorkingDir: "{app}"; Comment: "Bluejay Desktop"; Tasks: desktopicon
 
 [Registry]
-Root: HKLM; Subkey: "Software\FUTO\Grayjay"; ValueType: string; ValueName: "InstallLocation"; ValueData: "{app}"; Flags: uninsdeletevalue; Check: IsAdminInstallMode
-Root: HKCU; Subkey: "Software\FUTO\Grayjay"; ValueType: string; ValueName: "InstallLocation"; ValueData: "{app}"; Flags: uninsdeletevalue; Check: not IsAdminInstallMode
+Root: HKLM; Subkey: "Software\RBWare\Bluejay"; ValueType: string; ValueName: "InstallLocation"; ValueData: "{app}"; Flags: uninsdeletevalue; Check: IsAdminInstallMode
+Root: HKCU; Subkey: "Software\RBWare\Bluejay"; ValueType: string; ValueName: "InstallLocation"; ValueData: "{app}"; Flags: uninsdeletevalue; Check: not IsAdminInstallMode
 
 [Run]
 Filename: "{app}\FUTO.Updater.Client.exe"; Parameters: "install"; Flags: waituntilterminated
@@ -72,18 +72,18 @@ var
   ProgFiles: string;
   LocalProg: string;
 begin
-  ProgFiles := ExpandConstant('{pf64}\Grayjay');
-  LocalProg := ExpandConstant('{localappdata}\Programs\Grayjay');
+  ProgFiles := ExpandConstant('{pf64}\Bluejay');
+  LocalProg := ExpandConstant('{localappdata}\Programs\Bluejay');
 
   { Existing machine‑wide install? }
-  if RegQueryStringValue(HKLM, 'Software\FUTO\Grayjay', 'InstallLocation', PrevDir) and DirExists(PrevDir) then
+  if RegQueryStringValue(HKLM, 'Software\RBWare\Bluejay', 'InstallLocation', PrevDir) and DirExists(PrevDir) then
   begin
     Result := PrevDir;
     exit;
   end;
 
   { Existing per‑user install? }
-  if RegQueryStringValue(HKCU, 'Software\FUTO\Grayjay', 'InstallLocation', PrevDir) and DirExists(PrevDir) then
+  if RegQueryStringValue(HKCU, 'Software\RBWare\Bluejay', 'InstallLocation', PrevDir) and DirExists(PrevDir) then
   begin
     Result := PrevDir;
     exit;

@@ -1423,7 +1423,8 @@ export function FocusProvider(props: { children: JSX.Element }) {
         if (e.ctrlKey || e.metaKey || e.altKey || isTypingKey(e)) return true;
         if (['w','a','s','d','W','A','S','D'].includes(e.key)) return true;
 
-        /*if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        //Bluejay: arrow keys leave a text field once the caret can't move further, so keyboard-only users aren't stuck in it
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
             const el = t as HTMLInputElement | HTMLTextAreaElement;
             return !caretAtBoundary(el, e.key === 'ArrowLeft' ? 'left' : 'right');
         }
@@ -1439,7 +1440,7 @@ export function FocusProvider(props: { children: JSX.Element }) {
                 return textareaCanMove(ta, e.key === 'ArrowUp' ? 'up' : 'down');
             }
             return true;
-        }*/
+        }
 
         return true;
     }
@@ -1502,10 +1503,11 @@ export function FocusProvider(props: { children: JSX.Element }) {
 
         if (!e.ctrlKey && !e.shiftKey && !e.altKey) {
             switch (e.key) {
-                /*case 'ArrowUp': navigateDirection('up', "keyboard"); e.preventDefault(); e.stopPropagation(); break;
+                //Bluejay: arrow keys navigate (TV use), the focused video player still seeks/toggles fullscreen through its onDirection
+                case 'ArrowUp': navigateDirection('up', "keyboard"); e.preventDefault(); e.stopPropagation(); break;
                 case 'ArrowDown': navigateDirection('down', "keyboard"); e.preventDefault(); e.stopPropagation(); break;
                 case 'ArrowLeft': navigateDirection('left', "keyboard"); e.preventDefault(); e.stopPropagation(); break;
-                case 'ArrowRight': navigateDirection('right', "keyboard"); e.preventDefault(); e.stopPropagation(); break;*/
+                case 'ArrowRight': navigateDirection('right', "keyboard"); e.preventDefault(); e.stopPropagation(); break;
                 case 'Enter':
                 //case ' ':
                     press('press', "keyboard");

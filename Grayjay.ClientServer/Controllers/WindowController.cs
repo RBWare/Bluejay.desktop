@@ -24,7 +24,7 @@ namespace Grayjay.ClientServer.Controllers
             {
                 var window = await GrayjayServer.Instance.WindowProvider.CreateWindowAsync(
                     url: $"{GrayjayServer.Instance.BaseUrl}{GrayjayServer.Instance.GetIndexUrl()}",
-                    title: "Grayjay (Sub)",
+                    title: "Bluejay (Sub)",
                     minimumWidth: 900,
                     minimumHeight: 550,
                     preferredWidth: 1300,

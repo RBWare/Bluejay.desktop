@@ -214,7 +214,7 @@ namespace Grayjay.Desktop
                     case WidevineState.RestartRequired:
                         Logger.i(nameof(Program), $"Widevine CDM {status.Version} was installed and takes effect after a restart.");
                         await StateWindow.WaitForReadyAsync();
-                        StateUI.Toast("Protected playback", "Restart Grayjay to finish enabling playback of protected content.");
+                        StateUI.Toast("Protected playback", "Restart Bluejay to finish enabling playback of protected content.");
                         break;
                     case WidevineState.Unavailable when status.Reason == WidevineUnavailableReason.NotSupported:
                         Logger.i(nameof(Program), "Widevine is unavailable on this platform, protected content will not play.");
@@ -390,7 +390,8 @@ namespace Grayjay.Desktop
             bool isHeadless = args?.Contains("--headless") ?? false;
             bool isServer = args?.Contains("--server") ?? false;
             bool disableSecurity = args?.Contains("--ignore-security") ?? false;
-            bool isFullscreen = args?.Contains("--fullscreen") ?? false;
+            //Bluejay: always fullscreen, it is meant to be used on a TV (--fullscreen is still accepted)
+            bool isFullscreen = true;
             double? scaleFactor = args?.FirstOrDefault(a => a.StartsWith("--scale-factor=")) is string s && double.TryParse(s["--scale-factor=".Length..], out var v) ? v : null;
             StateApp.InputSource = args?.FirstOrDefault(a => a.StartsWith("--input-source="))?["--input-source=".Length..];
 
@@ -407,9 +408,9 @@ namespace Grayjay.Desktop
                 {
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine("Headless and Server mode have temporarily been disabled due to security reasons");
-                    Console.WriteLine("If you would like to ignore this warning, you can choose to start Grayjay with the --ignore-security parameter");
+                    Console.WriteLine("If you would like to ignore this warning, you can choose to start Bluejay with the --ignore-security parameter");
                     Debug.WriteLine("Headless and Server mode have temporarily been disabled due to security reasons");
-                    Debug.WriteLine("If you would like to ignore this warning, you can choose to start Grayjay with the --ignore-security parameter");
+                    Debug.WriteLine("If you would like to ignore this warning, you can choose to start Bluejay with the --ignore-security parameter");
                     Console.ResetColor();
                     Console.ReadLine();
                     return;
@@ -574,13 +575,15 @@ namespace Grayjay.Desktop
                     minimumHeight: 550,
                     preferredWidth: 1300,
                     preferredHeight: 950,
-                    title: "Grayjay",
+                    title: "Bluejay",
                     iconPath: Utilities.FindFile("grayjay.png"),
-                    appId: "com.futo.grayjay.desktop",
+                    appId: "com.rbware.bluejay.desktop",
                     fullscreen: isFullscreen,
+                    resizable: false,
                     viewsEnabled: true
                 );
                 await window.SetModifyRequestsAsync(true, false);
+                FullscreenWindows.KeepFullscreen(window);
                 if (scaleFactor != null && scaleFactor != 1.0)
                 {
                     window.OnFrameLoadEnd += async (frameLoadInfo) =>
@@ -702,156 +705,29 @@ namespace Grayjay.Desktop
                         Logger.i(nameof(Program), "Checking for updates");
                         try
                         {
-                            if (!OperatingSystem.IsMacOS())
+                            //Bluejay: official updates can't be installed over this build, only announce releases newer than the one it's based on
+                            const string officialServer = "https://updater.grayjay.app/Apps/Grayjay.Desktop";
+                            int baseVersion = App.GrayjayBaseVersion;
+                            int latestVersion = OperatingSystem.IsMacOS() ? Updater.GetLatestMacOSVersion(officialServer) : Updater.GetLatestVersion(officialServer);
+                            Logger.i(nameof(Program), $"Grayjay base version {baseVersion}, latest official version {latestVersion}");
+
+                            if (latestVersion > 0 && latestVersion > baseVersion)
                             {
-
-                                (bool hasUpdates, int updaterVersion) = Updater.HasUpdate();
-                                if (updaterVersion > 0)
-                                    GrayjaySettings.Instance.Info.updaterVersion = "v" + updaterVersion.ToString();
-
-                                Logger.i(nameof(Program), (hasUpdates) ? "New updates found" : "No new updates");
-                                if (hasUpdates)
+                                Thread.Sleep(1500);
+                                StateUI.Dialog(new StateUI.DialogDescriptor()
                                 {
-                                    var processIds = new int[]
+                                    Text = $"Grayjay Desktop v{latestVersion} is available",
+                                    TextDetails = $"Bluejay is based on Grayjay Desktop v{baseVersion}.\nMerge the new official release into Bluejay to bring it up to date.",
+                                    Actions = new List<StateUI.DialogAction>()
                                     {
-                                        Process.GetCurrentProcess().Id
-                                    };
-                                    var changelog = Updater.GetTargetChangelog();
-                                    int currentVersion = (updaterVersion > 0) ? updaterVersion : Updater.GetUpdaterVersion();
-                                    GrayjaySettings.Instance.Info.updaterVersion = "v" + currentVersion.ToString();
-                                    if (changelog != null)
-                                    {
-                                        int targetUpdaterVersion = Updater.GetTargetUpdaterVersion(changelog.Server, changelog.Version, changelog.Platform);
-                                        if (targetUpdaterVersion > currentVersion)
+                                        new StateUI.DialogAction("Don't show again", () =>
                                         {
-                                            string url = Updater.GetUpdaterUrl(changelog.Server, changelog.Version, changelog.Platform);
-                                            Logger.w(nameof(Program), $"UPDATER REQUIRES UPDATING FROM: {url}\nAttempting self-updating");
-                                            Logger.w(nameof(Program), "Starting self-update..");
-                                            try
-                                            {
-                                                using (WebClient client = new WebClient())
-                                                {
-                                                    string updatedPath = Updater.GetUpdaterExecutablePath() + ".updated";
-                                                    client.DownloadFile(url, updatedPath);
-                                                    File.Copy(updatedPath, Updater.GetUpdaterExecutablePath(), true);
-                                                    if (OperatingSystem.IsLinux())
-                                                    {
-                                                        //Just in case
-                                                        try
-                                                        {
-                                                            Process chmod = new Process()
-                                                            {
-                                                                StartInfo = new ProcessStartInfo()
-                                                                {
-                                                                    FileName = "chmod",
-                                                                    Arguments = "-R u=rwx \"" + Updater.GetUpdaterExecutablePath() + "\"",
-                                                                    UseShellExecute = false,
-                                                                    RedirectStandardOutput = true,
-                                                                    CreateNoWindow = true
-                                                                }
-                                                            };
-                                                            chmod.Start();
-                                                            while (!chmod.StandardOutput.EndOfStream)
-                                                            {
-                                                                var line = chmod.StandardOutput.ReadLine();
-                                                                if (line != null)
-                                                                    Logger.Info<Program>(line);
-                                                            }
-                                                            chmod.WaitForExit();
-                                                        }
-                                                        catch (Exception ex)
-                                                        {
-                                                            Logger.e(nameof(Program), "Failed to fix permissions for Linux on updater");
-                                                            throw;
-                                                        }
-                                                    }
-                                                }
-                                                Logger.i(nameof(Program), "Self-updating appeared succesful");
-                                            }
-                                            catch (Exception ex)
-                                            {
-                                                Logger.e(nameof(Program), "Failed to download new Updater:\n" + url);
-                                                StateUI.Dialog(new StateUI.DialogDescriptor()
-                                                {
-                                                    Text = $"Failed to self-update updater to version {targetUpdaterVersion}",
-                                                    TextDetails = "Please download it yourself and override it in the Grayjay directory.\nOn linux, ensure it has execution permissions.",
-                                                    Code = "url",
-                                                    Actions = new List<StateUI.DialogAction>()
-                                                {
-                                                new StateUI.DialogAction("Ignore", () =>
-                                                {
-
-                                                }, StateUI.ActionStyle.Accent),
-                                                new StateUI.DialogAction("Download", () =>
-                                                {
-                                                    OSHelper.OpenUrl(url);
-                                                }, StateUI.ActionStyle.Primary)
-                                                }
-                                                });
-                                            }
-                                        }
+                                            GrayjaySettings.Instance.Notifications.AppUpdates = false;
+                                            GrayjaySettings.Instance.Save();
+                                        }, StateUI.ActionStyle.Accent),
+                                        new StateUI.DialogAction("OK", () => { }, StateUI.ActionStyle.Primary)
                                     }
-
-                                    Thread.Sleep(1500);
-                                    StateUI.Dialog(new StateUI.DialogDescriptor()
-                                    {
-                                        Text = $"A new update is available for Grayjay Desktop {(changelog != null ? $"(v{changelog.Version})" : "")}",
-                                        TextDetails = "Would you like to install the new update?\nGrayjay.Desktop will close during updating.",
-                                        Code = changelog?.Text,
-                                        Actions = new List<StateUI.DialogAction>()
-                                    {
-                                    new StateUI.DialogAction("Never", () =>
-                                    {
-                                        GrayjaySettings.Instance.Notifications.AppUpdates = false;
-                                        GrayjaySettings.Instance.Save();
-                                    }, StateUI.ActionStyle.Accent),
-                                    new StateUI.DialogAction("Ignore", () =>
-                                    {
-
-                                    }, StateUI.ActionStyle.Accent),
-                                    new StateUI.DialogAction("Install", () =>
-                                    {
-                                        Updater.Update(processIds);
-                                        window?.CloseAsync();
-                                        server?.StopServer();
-                                        cef.Dispose();
-                                        Environment.Exit(0);
-                                    }, StateUI.ActionStyle.Primary)
-                                    }
-                                    });
-                                }
-                            }
-                            else
-                            {
-                                string macosServer = "https://updater.grayjay.app/Apps/Grayjay.Desktop";
-                                int currentVersion = App.Version;
-                                string versionType = App.VersionType;
-                                string platform = StateApp.GetPlatformName();
-
-                                int latestMacOS = Updater.GetLatestMacOSVersion(macosServer);
-
-                                if (latestMacOS > currentVersion)
-                                {
-                                    var changelog = Updater.GetTargetChangelog(macosServer, latestMacOS, "win-x64");
-                                    Thread.Sleep(1500);
-                                    StateUI.Dialog(new StateUI.DialogDescriptor()
-                                    {
-                                        Text = $"A new update is available for Grayjay Desktop {(changelog != null ? $"(v{changelog.Version})" : "")}",
-                                        TextDetails = "Would you like to install the new update?\nMacOS requires you to redownload the entire application.",
-                                        Code = changelog?.Text,
-                                        Actions = new List<StateUI.DialogAction>()
-                                    {
-                                    new StateUI.DialogAction("Ignore", () =>
-                                    {
-
-                                    }, StateUI.ActionStyle.Accent),
-                                    new StateUI.DialogAction("Install", () =>
-                                    {
-                                        OSHelper.OpenUrl($"{macosServer}/{latestMacOS}/Grayjay.Desktop-{platform}-v{latestMacOS}.zip");
-                                    }, StateUI.ActionStyle.Primary)
-                                    }
-                                    });
-                                }
+                                });
                             }
                         }
                         catch (Exception ex)

@@ -1,11 +1,11 @@
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
   xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui"
   xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util">
-	<Package Id="FUTO.Grayjay.Desktop" UpgradeCode="d635d41d-670a-4795-9166-3e20ea2d6845" Version="1.0.0.0" Name="Grayjay" Manufacturer="FUTO">
+	<Package Id="RBWare.Bluejay.Desktop" UpgradeCode="aadce1ee-d01b-411b-a802-5361afa33963" Version="1.0.0.0" Name="Bluejay" Manufacturer="RBWare">
     <Media Id="1" Cabinet="grayjay.cab" EmbedCab="yes" />
 		
 		<WixVariable Id="WixUILicenseRtf" Value="Metadata/LICENSE.rtf" />
-    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Launch Grayjay" />
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Launch Bluejay" />
     <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="APPLICATIONROOTDIRECTORY" />
     <UI>
       <Publish Dialog="ExitDialog" Control="Finish" Event="DoAction" Value="LaunchApplication" Condition="NOT Installed AND WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1" />
@@ -16,11 +16,11 @@
     <MajorUpgrade DowngradeErrorMessage="A newer version is installed. Uninstall it first." />
 
     <Property Id="APPDIR">
-			<RegistrySearch Id="SearchAppDir" Root="HKLM" Key="Software\FUTO\Grayjay" Name="InstallLocation" Type="directory" />
+			<RegistrySearch Id="SearchAppDir" Root="HKLM" Key="Software\RBWare\Bluejay" Name="InstallLocation" Type="directory" />
 		</Property>
 
 		<StandardDirectory Id="ProgramFiles64Folder">
-			<Directory Id="APPLICATIONROOTDIRECTORY" Name="Grayjay">
+			<Directory Id="APPLICATIONROOTDIRECTORY" Name="Bluejay">
 				<Directory Id="CEFDIRECTORY" Name="cef" />
 			</Directory>
 		</StandardDirectory>
@@ -30,7 +30,7 @@
 				<File Source="Files/FUTO.Updater.Client.exe" />
 				<File Source="Files/UpdaterConfig.json" />
 				<File Source="Files/UpdaterOSConfig.json" />
-        <RegistryValue Root="HKLM" Key="Software\FUTO\Grayjay" Name="InstallLocation" Type="string" Value="[APPLICATIONROOTDIRECTORY]" KeyPath="yes" />
+        <RegistryValue Root="HKLM" Key="Software\RBWare\Bluejay" Name="InstallLocation" Type="string" Value="[APPLICATIONROOTDIRECTORY]" KeyPath="yes" />
 			</Component>
 		</DirectoryRef>
 		<DirectoryRef Id="CEFDIRECTORY">
@@ -40,21 +40,21 @@
 		</DirectoryRef>
 		
 		<StandardDirectory Id="ProgramMenuFolder">
-			<Directory Id="ApplicationProgramsFolder" Name="Grayjay"/>
+			<Directory Id="ApplicationProgramsFolder" Name="Bluejay"/>
 		</StandardDirectory>
 		<DirectoryRef Id="ApplicationProgramsFolder">
 			<Component Id="ApplicationShortcut" Guid="748e1ff6-7495-4619-8ce0-ec0e375cac20">
 				<Shortcut Id="ApplicationStartMenuShortcut"
-						  Name="Grayjay"
-						  Description="Grayjay Desktop"
-						  Target="[APPLICATIONROOTDIRECTORY]Grayjay.exe"
+						  Name="Bluejay"
+						  Description="Bluejay Desktop"
+						  Target="[APPLICATIONROOTDIRECTORY]Bluejay.exe"
 						  WorkingDirectory="APPLICATIONROOTDIRECTORY"/>
 				<RemoveFolder Id="CleanUpShortCut" Directory="ApplicationProgramsFolder" On="uninstall"/>
 			</Component>
 		</DirectoryRef>
 		
 				 
-		<Feature Id="MainApplication" Title="Grayjay" Level="1">
+		<Feature Id="MainApplication" Title="Bluejay" Level="1">
 			<ComponentRef Id="Files" />
 			<ComponentRef Id="FilesCEF" />
 			<ComponentRef Id="ApplicationShortcut" />
@@ -77,7 +77,7 @@
 
     <CustomAction Id="LaunchApplication"
                   Directory="APPLICATIONROOTDIRECTORY"
-                  ExeCommand="&quot;[APPLICATIONROOTDIRECTORY]Grayjay.exe&quot;"
+                  ExeCommand="&quot;[APPLICATIONROOTDIRECTORY]Bluejay.exe&quot;"
                   Execute="immediate"
                   Return="asyncNoWait" />
 

@@ -386,7 +386,7 @@ namespace Grayjay.Desktop.POC.Port.States
                     tcs.SetResult(null);
             }
 
-            window = await GrayjayServer.Instance.WindowProvider.CreateInterceptorWindowAsync("Grayjay (Login)", authConfig.LoginUrl, authConfig.UserAgent,
+            window = await GrayjayServer.Instance.WindowProvider.CreateInterceptorWindowAsync("Bluejay (Login)", authConfig.LoginUrl, authConfig.UserAgent,
                 ((authConfig is PluginAuthDesktopConfig dconfig) ? dconfig.UseMobileEmulation : true), 
                 (!string.IsNullOrEmpty(authConfig.LoginButton) ? $$"""
                     (() => {

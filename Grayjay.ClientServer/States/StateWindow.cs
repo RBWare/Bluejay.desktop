@@ -15,6 +15,7 @@ public class WindowState : IDisposable
     public DateTime LastAccess { get; set; } = DateTime.Now;
 
     public HomeController.HomeState HomeState { get; set; } = new HomeController.HomeState();
+    public ForYouController.ForYouState ForYouState { get; set; } = new ForYouController.ForYouState();
     public HistoryController.HistoryState HistoryState { get; set; } = new HistoryController.HistoryState();
     public ChannelController.ChannelState ChannelState { get; set; } = new ChannelController.ChannelState();
     public DetailsController.DetailsState DetailsState { get; set; } = new DetailsController.DetailsState();

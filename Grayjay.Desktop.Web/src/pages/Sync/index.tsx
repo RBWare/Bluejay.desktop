@@ -234,7 +234,7 @@ const SyncPage: Component = () => {
                     Sync devices
                   </div>
                   <div class={styles.headerSubText}>
-                    Sync your subscriptions, history, playlists, watch later, as well as other functionality across all devices. Keep your data up to date automatically with Grayjay.
+                    Sync your subscriptions, history, playlists, watch later, as well as other functionality across all devices. Keep your data up to date automatically with Bluejay.
                   </div>
                 </div>
                 <ButtonFlex text={"Show QR"}

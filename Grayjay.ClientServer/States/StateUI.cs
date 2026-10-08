@@ -357,7 +357,7 @@ namespace Grayjay.ClientServer.Controllers
             else
                 throw new NotImplementedException("Unhandable captcha?");
 
-            window = await GrayjayServer.Instance.WindowProvider.CreateInterceptorWindowAsync("Grayjay (Captcha)", captchaUrl, captchaConfig.UserAgent, 
+            window = await GrayjayServer.Instance.WindowProvider.CreateInterceptorWindowAsync("Bluejay (Captcha)", captchaUrl, captchaConfig.UserAgent, 
                 ((captchaConfig is PluginCaptchaDesktopConfig dconfig) ? dconfig.UseMobileEmulation : true), 
                 null,
                 (InterceptorRequest request) =>

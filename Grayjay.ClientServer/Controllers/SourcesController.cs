@@ -174,7 +174,7 @@ namespace Grayjay.ClientServer.Controllers
                 }
             }
 
-            window = await GrayjayServer.Instance.WindowProvider.CreateInterceptorWindowAsync("Grayjay (Login)", authConfig.LoginUrl, authConfig.UserAgent, 
+            window = await GrayjayServer.Instance.WindowProvider.CreateInterceptorWindowAsync("Bluejay (Login)", authConfig.LoginUrl, authConfig.UserAgent, 
                 ((authConfig is PluginAuthDesktopConfig dconfig) ? dconfig.UseMobileEmulation : true),
                 (!string.IsNullOrEmpty(authConfig.LoginButton) ? $$"""
                     (() => {
@@ -331,7 +331,7 @@ namespace Grayjay.ClientServer.Controllers
                 if(id != StateDeveloper.DEV_ID)
                     StatePlugins.UpdatePlugin(id, true);
             }
-            _ = StateUI.Dialog("", "Please restart Grayjay before logging in again", "Grayjay does not clear past cookies yet after logout, please restart before trying to login again, or it will reuse your current login.", null, 0, new StateUI.DialogAction("Ok", () => { }));
+            _ = StateUI.Dialog("", "Please restart Bluejay before logging in again", "Bluejay does not clear past cookies yet after logout, please restart before trying to login again, or it will reuse your current login.", null, 0, new StateUI.DialogAction("Ok", () => { }));
             return true;
         }
 

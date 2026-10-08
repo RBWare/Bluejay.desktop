@@ -1,9 +1,12 @@
-using System.Reflection;
+﻿using System.Reflection;
 
 namespace Grayjay.ClientServer.Constants;
 
 public static class Directories
 {
+    //Bluejay keeps its data apart from Grayjay so both can be installed side by side
+    private const string AppDirectoryName = "Bluejay";
+
     private static string ComputeBaseDirectory()
     {
         string? assemblyFile = Assembly.GetEntryAssembly()?.Location;
@@ -19,35 +22,35 @@ public static class Directories
             string userDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
             if (OperatingSystem.IsWindows())
             {
-                string oldStyleDir = Path.Combine(userDir, "Grayjay");
+                string oldStyleDir = Path.Combine(userDir, AppDirectoryName);
                 if (Directory.Exists(oldStyleDir))
                     dir = oldStyleDir;
                 else
                 {
                     string appDataDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                    dir = Path.Combine(appDataDir, "Grayjay");
+                    dir = Path.Combine(appDataDir, AppDirectoryName);
                 }
             }
             else if (OperatingSystem.IsLinux())
             {
-                string oldStyleDir = Path.Combine(userDir, "Grayjay");
+                string oldStyleDir = Path.Combine(userDir, AppDirectoryName);
                 if (Directory.Exists(oldStyleDir))
                     dir = oldStyleDir;
                 else
                 {
                     string? xdgDataHome = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
                     if (!string.IsNullOrEmpty(xdgDataHome) && Directory.Exists(xdgDataHome))
-                        dir = Path.Combine(xdgDataHome, "Grayjay");
+                        dir = Path.Combine(xdgDataHome, AppDirectoryName);
                     else
                     {
                         string localShareDir = Path.Combine(userDir, ".local", "share");
                         if (Directory.Exists(localShareDir))
-                            dir = Path.Combine(localShareDir, "Grayjay");
+                            dir = Path.Combine(localShareDir, AppDirectoryName);
                         else
                         {
                             string configDir = Path.Combine(userDir, ".config");
                             if (Directory.Exists(configDir))
-                                dir = Path.Combine(configDir, "Grayjay");
+                                dir = Path.Combine(configDir, AppDirectoryName);
                             else
                                 dir = oldStyleDir; // Fallback to old-style
                         }
@@ -57,9 +60,9 @@ public static class Directories
             else if (OperatingSystem.IsMacOS())
             {
                 if (DirectoryIsWriteableReadable(Path.Combine(userDir, "Library/Application Support")))
-                    dir = Path.Combine(userDir, "Library/Application Support", "Grayjay");
+                    dir = Path.Combine(userDir, "Library/Application Support", AppDirectoryName);
                 else
-                    dir = Path.Combine(userDir, "Containers", "com.futo.grayjay.desktop", "Data", "Library", "Application Support");
+                    dir = Path.Combine(userDir, "Containers", "com.rbware.bluejay.desktop", "Data", "Library", "Application Support");
             }
             else
             {

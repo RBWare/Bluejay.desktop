@@ -51,16 +51,16 @@ const OverlayImportSelectDialog: Component<OverlayImportSelectDialogProps> = (pr
                 description='Import your data from a specific source' />
             </div>
             <div style="margin-bottom: 10px;">
-              <DescriptorButton icon={iconZip} text='Import Grayjay Export (.zip)' onClick={()=>{UIOverlay.dismiss(); ImportBackend.importZip()}} style={{"width": "100%"}}
-                description='Import zip file exported from Grayjay mobile app or desktop application.'
+              <DescriptorButton icon={iconZip} text='Import Bluejay/Grayjay Export (.zip)' onClick={()=>{UIOverlay.dismiss(); ImportBackend.importZip()}} style={{"width": "100%"}}
+                description='Import zip file exported from the Bluejay or Grayjay mobile app or desktop application.'
                 focusableOpts={{
                   onPress: () => {UIOverlay.dismiss(); ImportBackend.importZip()},
                   onBack: globalBack
                 }} />
             </div>
             <div style="margin-bottom: 10px;">
-              <DescriptorButton icon={iconZipEncrypted} text='Import Grayjay Auto-Backup (.ezip)' disabled={true} onClick={()=>{UIOverlay.dismiss();}} style={{"width": "100%"}}
-                description='Pick a Grayjay auto-backup encrypted zip file' />
+              <DescriptorButton icon={iconZipEncrypted} text='Import Bluejay/Grayjay Auto-Backup (.ezip)' disabled={true} onClick={()=>{UIOverlay.dismiss();}} style={{"width": "100%"}}
+                description='Pick a Bluejay or Grayjay auto-backup encrypted zip file' />
             </div>
             <div style="margin-bottom: 10px;">
               <DescriptorButton icon={iconDocument} text='Import Line Text file (.txt)' disabled={true} onClick={()=>{UIOverlay.dismiss();}} style={{"width": "100%"}}

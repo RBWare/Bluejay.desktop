@@ -2,11 +2,11 @@
 Version=1.0
 Type=Application
 
-Name=Grayjay
+Name=Bluejay
 Comment=Universal media aggregator
 Categories=AudioVideo;Player;
 
-Icon=app.grayjay.Grayjay
-Exec=Grayjay
+Icon=com.rbware.Bluejay
+Exec=Bluejay
 Terminal=false
 StartupWMClass=cef

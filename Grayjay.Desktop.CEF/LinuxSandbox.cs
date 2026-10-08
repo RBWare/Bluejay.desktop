@@ -122,7 +122,7 @@ namespace Grayjay.Desktop.CEF
                 await StateUI.Dialog("", "Enable the browser sandbox",
                     "Ubuntu blocks the user namespaces the Chromium sandbox needs, so Grayjay currently runs without it. " +
                     "Grayjay can install the AppArmor profile below, which allows user namespaces for Grayjay only. " +
-                    "This asks for your administrator password once. Moving the Grayjay folder requires doing this again.",
+                    "This asks for your administrator password once. Moving the Bluejay folder requires doing this again.",
                     profile, 0,
                     new StateUI.DialogAction("Not now", () => { }),
                     new StateUI.DialogAction("Don't ask again", () => TryWrite(PromptDeclinedFile, "")),
@@ -161,7 +161,7 @@ namespace Grayjay.Desktop.CEF
                 {
                     Logger.i(nameof(LinuxSandbox), "Installed the AppArmor profile.");
                     TryDelete(DisabledFile);
-                    StateUI.Toast("Browser sandbox", "Restart Grayjay to enable the sandbox.");
+                    StateUI.Toast("Browser sandbox", "Restart Bluejay to enable the sandbox.");
                 }
                 else if (process.ExitCode == PkexecDismissed || (process.ExitCode == PkexecNotAuthorized && string.IsNullOrEmpty(output)))
                 {

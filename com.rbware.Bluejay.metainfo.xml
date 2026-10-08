@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>app.grayjay.Grayjay</id>
-  <url type="bugtracker">https://github.com/futo-org/Grayjay.Desktop/issues</url>
+  <id>com.rbware.Bluejay</id>
+  <url type="bugtracker">https://github.com/RBWare/Bluejay.desktop/issues</url>
   <url type="homepage">https://grayjay.app/</url>
-  <url type="vcs-browser">https://gitlab.futo.org/videostreaming/Grayjay.Desktop</url>
-  <name>Grayjay</name>
+  <url type="vcs-browser">https://github.com/RBWare/Bluejay.desktop</url>
+  <name>Bluejay</name>
   <summary>Universal media aggregator</summary>
 
   <metadata_license>CC-BY-SA-4.0</metadata_license>
@@ -14,11 +14,11 @@
   </developer>
   <description>
     <p>
-      Grayjay is a multi-platform media application that allows you to watch content from multiple
+      Bluejay, based on FUTO's Grayjay, is a multi-platform media application that allows you to watch content from multiple
       platforms in a single application.
     </p>
     <p>
-      Grayjay enables you to create and watch video content in your own terms by allowing you to
+      Bluejay enables you to create and watch video content in your own terms by allowing you to
       follow creators, not platforms, giving you full ownership and control over what you watch.
     </p>
     <p>
