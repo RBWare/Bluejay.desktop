@@ -175,6 +175,16 @@ namespace Grayjay.ClientServer.States
         }
 
 
+        /// <summary>
+        /// Records the video as fully watched, like the mobile app's "Mark as watched".
+        /// </summary>
+        public static void MarkAsWatched(PlatformVideo video)
+        {
+            var index = GetHistoryByVideo(video, true, DateTime.Now);
+            if (index != null)
+                UpdateHistoryPosition(video, index, true, Math.Max(1, video.Duration - 1));
+        }
+
         public static void RemoveHistory(string url)
         {
             var index = GetHistoryIndex(url);

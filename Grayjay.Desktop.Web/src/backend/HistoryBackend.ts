@@ -1,8 +1,13 @@
 import { Backend } from "./Backend";
 import { IHistoryVideo } from "./models/content/IHistoryVideo";
 import { Pager } from "./models/pagers/Pager";
+import { IPlatformVideo } from "./models/content/IPlatformVideo";
 
 export abstract class HistoryBackend {
+    static async markAsWatched(video: IPlatformVideo): Promise<boolean> {
+        return await Backend.POST("/history/MarkAsWatched", JSON.stringify(video), "application/json") as boolean;
+    }
+
     static async getHistoricalPosition(url: string): Promise<number> {
         return await Backend.GET("/history/GetHistoricalPosition?url=" + encodeURIComponent(url)) as number;
     }

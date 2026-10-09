@@ -14,6 +14,8 @@ import iconAddToPlaylist from '../../../assets/icons/icon24_add_to_playlist.svg'
 import iconHide from '../../../assets/icons/icon24_hide.svg';
 import iconDownload from '../../../assets/icons/icon24_download.svg';
 import iconCreator from '../../../assets/icons/icon_nav_creators.svg';
+import iconWatched from '../../../assets/icons/icon_checkmark.svg';
+import { HistoryBackend } from '../../../backend/HistoryBackend';
 import Anchor, { AnchorStyle } from "../../../utility/Anchor";
 import { Portal } from "solid-js/web";
 import { WatchLaterBackend } from "../../../backend/WatchLaterBackend";
@@ -47,6 +49,10 @@ export interface ContentGridProps {
     outerContainerRef: HTMLDivElement | undefined;
     useCache?: boolean;
     openChannelButton?: boolean;
+    /** When set, the item menu offers "Hide creator" (used by For You). */
+    onHideCreator?: (content: IPlatformContent) => void;
+    /** Called after a video was marked as watched, e.g. so For You can drop it. */
+    onMarkedWatched?: (content: IPlatformContent) => void;
 };
 
 const ContentGrid: Component<ContentGridProps> = (props) => {
@@ -110,6 +116,10 @@ const ContentGrid: Component<ContentGridProps> = (props) => {
                     new MenuItemButton("Download video", iconDownload, undefined, ()=>{
                         UIOverlay.overlayDownload(content.url);
                     }),
+                    new MenuItemButton("Mark as watched", iconWatched, undefined, async ()=>{
+                        await HistoryBackend.markAsWatched(content as IPlatformVideo);
+                        props.onMarkedWatched?.(content);
+                    }),
                 ] : [
                     new MenuItemButton("Open channel", iconCreator, undefined, ()=>{
                         const author = content?.author;
@@ -117,11 +127,12 @@ const ContentGrid: Component<ContentGridProps> = (props) => {
                             navigate("/web/channel?url=" + encodeURIComponent(author.url), { state: { author } });
                     }),
                 ]),
-                /*
-                new MenuSeperator(),
-                new MenuItemButton("Hide creator from feed", iconHide, undefined, ()=>{
-
-                }),*/
+                ... (props.onHideCreator && content?.author?.url ? [
+                    new MenuSeperator(),
+                    new MenuItemButton("Hide creator", iconHide, undefined, ()=>{
+                        props.onHideCreator?.(content);
+                    }),
+                ] : []),
             ]
         } as Menu;
     });

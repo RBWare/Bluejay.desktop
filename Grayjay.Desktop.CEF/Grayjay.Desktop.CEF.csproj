@@ -21,11 +21,11 @@
     <Compile Remove="CEFWindow.cs" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(RuntimeIdentifier)' != 'osx-x64' And '$(RuntimeIdentifier)' != 'osx-x64'">
+  <!-- Bluejay: the "Portable" marker is not shipped. With it the app keeps its data inside the app folder, which FUTO's
+       in-place updater preserves but replacing the folder with a new Bluejay build loses. Without it data lives in the
+       user's data directory (%APPDATA%\Bluejay, ~/.local/share/Bluejay) and survives updates. -->
+  <ItemGroup>
     <None Remove="Portable" />
-    <Compile Include="Portable">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Compile>
   </ItemGroup>
 
   <ItemGroup>

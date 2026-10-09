@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using Grayjay.ClientServer.Models.History;
+using Grayjay.ClientServer.Store;
 using Grayjay.Desktop.POC.Port.States;
 using Grayjay.Engine.Models.Detail;
 using Grayjay.Engine.Models.Feed;
@@ -41,9 +42,40 @@ namespace Grayjay.ClientServer.States
         private static List<PlatformVideo> _discovery = new List<PlatformVideo>();
         private static DateTime _discoveryTime = DateTime.MinValue;
 
+        //Creators the user chose to hide from For You, persisted across restarts
+        private static readonly StringArrayStore _hiddenCreators = new StringArrayStore("hiddenCreators", Array.Empty<string>()).Load();
+
         static StateForYou()
         {
             StateSubscriptions.OnSubscriptionsChanged += (_, _) => Clear();
+        }
+
+        public static bool IsCreatorHidden(string? creatorUrl) => !string.IsNullOrEmpty(creatorUrl) && _hiddenCreators.Contains(creatorUrl);
+        public static int HiddenCreatorCount() => _hiddenCreators.GetCopy().Length;
+
+        public static void HideCreator(string creatorUrl)
+        {
+            if (string.IsNullOrEmpty(creatorUrl))
+                return;
+            if (!_hiddenCreators.Contains(creatorUrl))
+                _hiddenCreators.AddSave(creatorUrl);
+            //Drop the creator from the cached feed so it is gone without rebuilding
+            lock (_lock)
+            {
+                _feed = _feed.Where(x => x.Author?.Url != creatorUrl).ToList();
+                _discovery = _discovery.Where(x => x.Author?.Url != creatorUrl).ToList();
+            }
+        }
+
+        public static void ClearHiddenCreators()
+        {
+            _hiddenCreators.Save(Array.Empty<string>());
+            //Hidden creators were filtered out while ranking, rebuild so they come back
+            lock (_lock)
+            {
+                _feed = new List<PlatformContent>();
+                _feedTime = DateTime.MinValue;
+            }
         }
 
         public static bool IsStale()
@@ -122,7 +154,7 @@ namespace Grayjay.ClientServer.States
                         reachedEnd = true;
                         continue;
                     }
-                    if (item is not PlatformVideo || string.IsNullOrEmpty(item.Url))
+                    if (item is not PlatformVideo || string.IsNullOrEmpty(item.Url) || IsCreatorHidden(item.Author?.Url))
                         continue;
                     if (item.DateTime > now.AddMinutes(5))
                         continue;
@@ -323,7 +355,7 @@ namespace Grayjay.ClientServer.States
 
         private static bool IsDiscoveryCandidate(PlatformVideo video)
         {
-            if (string.IsNullOrEmpty(video.Author?.Url))
+            if (string.IsNullOrEmpty(video.Author?.Url) || IsCreatorHidden(video.Author.Url))
                 return false;
             if (StateSubscriptions.IsSubscribed(video.Author.Url))
                 return false;

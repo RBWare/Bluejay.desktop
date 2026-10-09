@@ -1709,8 +1709,19 @@ export function FocusProvider(props: { children: JSX.Element }) {
         else (cur.el as HTMLElement).blur?.();
     }
 
+    //Bluejay: Chromium fires synthetic pointer moves when content scrolls under a stationary cursor (e.g. after arrow-key
+    //navigation scrolls a grid). Only real movement of the pointer switches back to pointer mode, otherwise the focus
+    //indicator disappears right after every keyboard move.
+    let lastPointerX: number | undefined;
+    let lastPointerY: number | undefined;
     const onPointerMove = (e: PointerEvent) => {
-        setLastInputSource("pointer");
+        const moved = lastPointerX === undefined || lastPointerY === undefined
+            ? (e.movementX !== 0 || e.movementY !== 0)
+            : (e.screenX !== lastPointerX || e.screenY !== lastPointerY);
+        lastPointerX = e.screenX;
+        lastPointerY = e.screenY;
+        if (moved)
+            setLastInputSource("pointer");
     };
 
     const onGamepadConnected = (_e: GamepadEvent) => {

@@ -27,7 +27,29 @@ namespace Grayjay.ClientServer.Controllers
             var pager = (!refresh && !StateForYou.IsStale() ? StateForYou.GetCachedPager() : null)
                 ?? await StateForYou.BuildFeed(refresh);
             this.State().ForYouState.ForYouPager = pager;
-            return pager.AsPagerResult(x => x is PlatformVideo, y => StateHistory.AddVideoMetadata((PlatformVideo)y));
+            return pager.AsPagerResult(IsVisible, y => StateHistory.AddVideoMetadata((PlatformVideo)y));
+        }
+
+        //Pages of an already built feed may still contain a creator hidden or a video watched since
+        private static bool IsVisible(PlatformContent x) => x is PlatformVideo v
+            && !StateForYou.IsCreatorHidden(v.Author?.Url)
+            && !(v.Duration > 0 && StateHistory.IsHistoryWatched(v.Url, v.Duration));
+
+        [HttpGet]
+        public bool HideCreator(string url)
+        {
+            StateForYou.HideCreator(url);
+            return true;
+        }
+
+        [HttpGet]
+        public int HiddenCreatorCount() => StateForYou.HiddenCreatorCount();
+
+        [HttpGet]
+        public bool ClearHiddenCreators()
+        {
+            StateForYou.ClearHiddenCreators();
+            return true;
         }
 
         [HttpGet]
@@ -39,7 +61,7 @@ namespace Grayjay.ClientServer.Controllers
                 lock (pager)
                 {
                     pager.NextPage();
-                    return pager.AsPagerResult(x => x is PlatformVideo, y => StateHistory.AddVideoMetadata((PlatformVideo)y));
+                    return pager.AsPagerResult(IsVisible, y => StateHistory.AddVideoMetadata((PlatformVideo)y));
                 }
             }
             catch (Exception ex)
