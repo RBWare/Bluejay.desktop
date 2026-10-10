@@ -78,6 +78,7 @@ import { focusScope } from '../../../focusScope'; void focusScope;
 import { focusable } from '../../../focusable'; void focusable;
 import LiveChatState, { LiveRaidEvent } from "../../../state/StateLiveChat"
 import { useFocus } from "../../../FocusProvider";
+import { SettingsBackend } from "../../../backend/SettingsBackend";
 import ControllerOverlay from "../../ControllerOverlay";
 import { useCasting } from "../../../contexts/Casting";
 import { SearchBackend } from "../../../backend/SearchBackend";
@@ -406,6 +407,65 @@ const VideoDetailView: Component<VideoDetailsProps> = (props) => {
         }
     };
 
+    //Bluejay: YouTube-style autoplay. Near the end of a video, show what plays next (the next unwatched video of the
+    //section it was opened from, otherwise the first recommendation) and play it when the video ends unless cancelled.
+    const AUTOPLAY_COUNTDOWN_SECONDS = 10;
+    const [autoplayEnabled$] = createResource(async () => (await SettingsBackend.settings())?.object?.playback?.autoplayNext ?? true);
+    const [autoplayCancelled$, setAutoplayCancelled] = createSignal(false);
+    const [secondsRemaining$, setSecondsRemaining] = createSignal<number>();
+    createEffect(on(() => videoLoaded$()?.url, () => {
+        setAutoplayCancelled(false);
+        setSecondsRemaining(undefined);
+    }));
+
+    const isAutoplayCandidate = (v: IPlatformContent | undefined, currentUrl: string): v is IPlatformVideo =>
+        !!v && v.contentType === ContentType.MEDIA && v.url !== currentUrl
+            && !(v as IPlatformVideo).isLive && (v as any).metadata?.watched !== true;
+
+    const autoplayNext$ = createMemo<IPlatformVideo | undefined>(() => {
+        secondsRemaining$(); //Re-evaluate as playback progresses, section and recommendation lists are not reactive
+        if (autoplayEnabled$() === false)
+            return undefined;
+        if (nextVideoIndex() !== undefined)
+            return undefined; //An explicit queue continues on its own
+        const current = videoLoaded$();
+        if (!current || current.isLive)
+            return undefined;
+
+        const section = video?.autoplaySource()?.() ?? [];
+        const index = section.findIndex(x => x.url === current.url);
+        const fromSection = (index >= 0 ? section.slice(index + 1) : section).find(x => isAutoplayCandidate(x, current.url));
+        if (fromSection)
+            return fromSection;
+        return recomPager$()?.dataFiltered?.find(x => isAutoplayCandidate(x, current.url));
+    });
+    const upNextVisible$ = createMemo(() => {
+        const remaining = secondsRemaining$();
+        return !!autoplayNext$() && !autoplayCancelled$() && remaining !== undefined && remaining <= AUTOPLAY_COUNTDOWN_SECONDS;
+    });
+    const playUpNext = () => {
+        const next = autoplayNext$();
+        if (!next)
+            return false;
+        video?.actions?.openVideo(next, undefined, video?.state(), video?.autoplaySource());
+        return true;
+    };
+    const cancelAutoplay = () => setAutoplayCancelled(true);
+
+    //Which up next button the remote's Enter activates, left/right switch between them
+    const [upNextChoice$, setUpNextChoice] = createSignal<'cancel' | 'play'>('play');
+    createEffect(on(upNextVisible$, (visible) => {
+        if (visible)
+            setUpNextChoice('play');
+    }));
+    const activateUpNextChoice = () => {
+        if (upNextChoice$() === 'cancel') {
+            cancelAutoplay();
+            return true;
+        }
+        return playUpNext();
+    };
+
     const handleEnded = async () => {
         const currentIndex = video?.index();
         if (currentIndex === undefined) {
@@ -420,6 +480,8 @@ const VideoDetailView: Component<VideoDetailsProps> = (props) => {
             } else {
                 video?.actions?.setIndex(nextIndex);
             }
+        } else if (!autoplayCancelled$()) {
+            playUpNext();
         }
 
         if (currentVideo) {
@@ -569,6 +631,9 @@ const VideoDetailView: Component<VideoDetailsProps> = (props) => {
 
     const handlePositionChanged = (p: Duration) => {
         position = p;
+        const duration = videoLoaded$()?.duration;
+        if (duration && duration > 0)
+            setSecondsRemaining(Math.max(0, Math.ceil(duration - p.as("seconds"))));
     };
     
     const [currentPlayerHeight$, setCurrentPlayerHeight] = createSignal<number>();
@@ -1775,6 +1840,48 @@ const VideoDetailView: Component<VideoDetailsProps> = (props) => {
                             onVolumeChanged={(volume) => video?.actions?.setVolume?.(volume)}
                             onFullscreenChange={handleFullscreenChange}
                             onEnded={handleEnded}
+                            onPressIntercept={() => upNextVisible$() && activateUpNextChoice()}
+                            onDirectionIntercept={(dir) => {
+                                if (!upNextVisible$())
+                                    return false;
+                                if (dir === 'left') {
+                                    setUpNextChoice('cancel');
+                                    return true;
+                                }
+                                if (dir === 'right') {
+                                    setUpNextChoice('play');
+                                    return true;
+                                }
+                                return false;
+                            }}
+                            onBackIntercept={() => {
+                                if (!upNextVisible$())
+                                    return false;
+                                cancelAutoplay();
+                                return true;
+                            }}
+                            overlay={
+                                <Show when={upNextVisible$() && !isMinimized() ? autoplayNext$() : undefined}>{(next) =>
+                                    <div style={{ position: "absolute", right: "24px", bottom: "110px", "z-index": 5, width: "380px", "max-width": "calc(100% - 48px)", background: "rgba(18, 18, 18, 0.94)", "border-radius": "12px", padding: "14px", display: "flex", "flex-direction": "column", gap: "10px", color: "white", "box-shadow": "0 4px 24px rgba(0,0,0,0.5)" }}
+                                        onClick={(e) => e.stopPropagation()} onDblClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
+                                        <div style={{ "font-size": "13px", color: "#aaa" }}>Up next in {secondsRemaining$()}s</div>
+                                        <div style={{ display: "flex", gap: "12px", "align-items": "center" }}>
+                                            <img src={getBestThumbnail(next().thumbnails)?.url} style={{ width: "128px", height: "72px", "object-fit": "cover", "border-radius": "6px", "flex-shrink": 0, background: "#222" }} />
+                                            <div style={{ "min-width": 0 }}>
+                                                <div style={{ "font-size": "14px", "font-weight": 600, overflow: "hidden", display: "-webkit-box", "-webkit-line-clamp": 2, "-webkit-box-orient": "vertical" }}>{next().name}</div>
+                                                <div style={{ "font-size": "12px", color: "#aaa", "margin-top": "4px" }}>{next().author?.name}</div>
+                                            </div>
+                                        </div>
+                                        <div style={{ display: "flex", gap: "8px", "justify-content": "flex-end", "align-items": "center" }}>
+                                            <Show when={focus.lastInputSource() !== "pointer"}>
+                                                <div style={{ "font-size": "11px", color: "#888", "margin-right": "auto" }}>←/→ choose · Enter: select · Esc: cancel</div>
+                                            </Show>
+                                            <button style={{ background: "#333", color: "white", border: "none", "border-radius": "6px", padding: "8px 14px", cursor: "pointer", outline: upNextChoice$() === 'cancel' ? "4px solid #ffffff" : "none", "outline-offset": "-4px" }} onClick={cancelAutoplay}>Cancel</button>
+                                            <button style={{ background: "#2D63ED", color: "white", border: "none", "border-radius": "6px", padding: "8px 14px", cursor: "pointer", outline: upNextChoice$() === 'play' ? "4px solid #ffffff" : "none", "outline-offset": "-4px" }} onClick={() => playUpNext()}>Play now</button>
+                                        </div>
+                                    </div>
+                                }</Show>
+                            }
                             onError={handleError}
                             onPreviousVideo={() => {
                                 const currentIndex = video?.index();

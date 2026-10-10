@@ -89,8 +89,20 @@ namespace Grayjay.ClientServer.States
             File.WriteAllText(path, text);
         }
 
+        /// <summary>Raised after the user saved settings, e.g. to apply the interface size right away.</summary>
+        public static event Action<GrayjaySettings>? OnSettingsChanged;
+
         public static void SettingsChanged(GrayjaySettings settings)
         {
+            try
+            {
+                OnSettingsChanged?.Invoke(settings);
+            }
+            catch (Exception ex)
+            {
+                Logger.e(nameof(StateApp), "Settings changed handler failed", ex);
+            }
+
             //TODO: Pass previous settings to this? so this isn't executed when unchanged
             if (settings.Synchronization.Enabled)
             {

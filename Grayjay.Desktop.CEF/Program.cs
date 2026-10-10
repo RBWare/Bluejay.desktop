@@ -393,7 +393,8 @@ namespace Grayjay.Desktop
             //Bluejay: always fullscreen, it is meant to be used on a TV (--fullscreen is still accepted)
             bool isFullscreen = true;
             double? scaleFactor = args?.FirstOrDefault(a => a.StartsWith("--scale-factor=")) is string s && double.TryParse(s["--scale-factor=".Length..], out var v) ? v : null;
-            StateApp.InputSource = args?.FirstOrDefault(a => a.StartsWith("--input-source="))?["--input-source=".Length..];
+            //Bluejay: keyboard/controller only (TV). The web UI ignores the mouse unless started with --input-source=pointer.
+            StateApp.InputSource = args?.FirstOrDefault(a => a.StartsWith("--input-source="))?["--input-source=".Length..] ?? "keyboard";
 
             if (isHeadless || isServer)
             {
@@ -584,25 +585,8 @@ namespace Grayjay.Desktop
                 );
                 await window.SetModifyRequestsAsync(true, false);
                 FullscreenWindows.KeepFullscreen(window);
-                if (scaleFactor != null && scaleFactor != 1.0)
-                {
-                    window.OnFrameLoadEnd += async (frameLoadInfo) =>
-                    {
-                        try
-                        {
-                            if (frameLoadInfo.Url != null && frameLoadInfo.Url.EndsWith("/web/index.html"))
-                            {
-                                await window.SetZoomAsync(scaleFactor.Value);
-                                Logger.i(nameof(Program), "Set page scale factor.");
-                            }
-                            Logger.i(nameof(Program), "OnLoadEnd: " + frameLoadInfo.Url);
-                        }
-                        catch (Exception e)
-                        {
-                            Logger.e(nameof(Program), "Failed to set page scale factor.", e);
-                        }
-                    };
-                }
+                //Bluejay: TV friendly interface size from Settings > Interface, --scale-factor (a raw zoom level) still overrides it
+                InterfaceZoom.Attach(window, () => scaleFactor ?? InterfaceZoom.SettingsZoomLevel());
                 await window.SetDevelopmentToolsEnabledAsync(true);
                 Logger.i(nameof(Program), $"Time to window show {sw.ElapsedMilliseconds}ms");
                 Logger.i(nameof(Program), $"Main: Starting window finished ({startWindowWatch.ElapsedMilliseconds}ms)");
@@ -776,7 +760,23 @@ namespace Grayjay.Desktop
             await server.StopServer();
 
             StateApp.Shutdown();
+
+            //Bluejay: let the native browser process finish (JustCef force-kills it after its 5s grace period), then
+            //make sure no leftover thread keeps this process alive
+            if (cef != null)
+            {
+                try
+                {
+                    await Task.WhenAny(cef.WaitForExitAsync(), Task.Delay(TimeSpan.FromSeconds(6)));
+                }
+                catch (Exception ex)
+                {
+                    Logger.w(nameof(Program), "Failed waiting for the browser process to exit", ex);
+                }
+            }
+            Logger.i(nameof(Program), "Main: Exiting.");
             Logger.DisposeStaticLogger();
+            Environment.Exit(0);
         }
     }
 }

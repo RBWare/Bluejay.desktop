@@ -39,9 +39,11 @@ export interface VideoContextValue {
     desiredMode: Accessor<VideoMode>;
     theatrePinned: Accessor<boolean>;
     volume: Accessor<number>;
+    /** Videos of the section (feed/grid) the current video was opened from, used to pick what autoplays next. */
+    autoplaySource: Accessor<(() => IPlatformVideo[]) | undefined>;
     //queueType watch later, playlist en queue of undefined
     actions: {
-        openVideo: (video: IPlatformVideo, time?: Duration, videoState?: VideoState) => void;
+        openVideo: (video: IPlatformVideo, time?: Duration, videoState?: VideoState, autoplaySource?: () => IPlatformVideo[]) => void;
         openVideoByUrl: (url: string, time?: Duration, videoState?: VideoState) => void;
         setQueue: (index: number, queue: IPlatformVideo[], repeat?: boolean, shuffle?: boolean, videoState?: VideoState) => void;
         addToQueue: (v: IPlatformVideo) => void;
@@ -75,6 +77,7 @@ export const VideoProvider: ParentComponent<VideoContextProps> = (props) => {
     const [desiredMode, setDesiredModeInternal] = createSignal<VideoMode>(VideoMode.Theatre);
     const [theatrePinned, setTheatrePinnedInternal] = createSignal<boolean>(true);
     const [volume, setVolumeInternal] = createSignal<number>(1);
+    const [autoplaySource, setAutoplaySource] = createSignal<(() => IPlatformVideo[]) | undefined>();
     const shuffle = () => shuffledQueue() !== undefined;
     const queue = createMemo(() => shuffledQueue() ?? baseQueue());
     const video = createMemo(() => {
@@ -87,9 +90,10 @@ export const VideoProvider: ParentComponent<VideoContextProps> = (props) => {
         return q[i];
     })
 
-    const openVideo = (v: IPlatformVideo, time?: Duration, videoState?: VideoState) => { 
+    const openVideo = (v: IPlatformVideo, time?: Duration, videoState?: VideoState, source?: () => IPlatformVideo[]) => { 
         const desiredVideoState = videoState ?? VideoState.Maximized;
         batch(() => {
+            setAutoplaySource(() => source);
             setIndex(0);
             setStartTime(time);
             setBaseQueue([ v ]);
@@ -104,6 +108,7 @@ export const VideoProvider: ParentComponent<VideoContextProps> = (props) => {
             setState(desiredVideoState);
         const videoLoadResult = await DetailsBackend.videoLoad(url);
         batch(() => {
+            setAutoplaySource(undefined);
             setIndex(0);
             setStartTime(time);
             setBaseQueue([ videoLoadResult.video ]);
@@ -119,6 +124,7 @@ export const VideoProvider: ParentComponent<VideoContextProps> = (props) => {
 
         const desiredVideoState = videoState ?? VideoState.Maximized;
         const videos = [ ...queue ];
+        setAutoplaySource(undefined);
         batch(() => {
             setBaseQueue(videos);
             if (shuffleRequested === true) {
@@ -276,6 +282,7 @@ export const VideoProvider: ParentComponent<VideoContextProps> = (props) => {
         desiredMode,
         theatrePinned,
         volume,
+        autoplaySource,
         actions: {
             setIndex: (i: number) => {
                 batch(() => {

@@ -43,6 +43,7 @@ namespace Grayjay.Desktop.CEF
                 resizable: false
             );
             FullscreenWindows.KeepFullscreen(window);
+            InterfaceZoom.Attach(window, InterfaceZoom.SettingsZoomLevel);
 
             var windowResult = new Window(window);
             if(beforeLoad != null)

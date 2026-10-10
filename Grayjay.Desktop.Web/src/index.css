@@ -18,10 +18,21 @@ code {
     monospace;
 }
 
+/* Bluejay: thicker, brighter selection ring so it is easy to see on a TV. Drawn inward so clipping containers
+   (overflow: hidden grids and rows) cannot cut it off. */
 :where(body[data-input-source="keyboard"]) :where(*:focus),
 :where(body[data-input-source="gamepad"]) :where(*:focus) {
-  outline: 2px solid #bbb;
-  outline-offset: -1px;
+  outline: 4px solid #ffffff;
+  outline-offset: -4px;
+}
+
+/* Bluejay: mouse disabled (TV mode), no cursor, hover effects or pointer targeting anywhere in the UI */
+body[data-mouse-disabled],
+body[data-mouse-disabled] * {
+  cursor: none !important;
+}
+body[data-mouse-disabled] * {
+  pointer-events: none !important;
 }
 
 :where(body[data-input-source="pointer"]) :where(*:focus) {

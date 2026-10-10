@@ -156,6 +156,52 @@ const SubscriptionsPage: Component = () => {
       active: createSignal(true)
     }
   ];
+  //Bluejay: the creators, groups and filters rows are collapsible so videos start higher up; the expanded rows are
+  //remembered on this device. Collapsed rows still show when they affect the feed (selected creator/group, changed filters).
+  type SubscriptionsSection = 'creators' | 'groups' | 'filters';
+  const EXPANDED_SECTIONS_KEY = 'bluejay.subscriptions.expandedSections';
+  const loadExpandedSections = (): SubscriptionsSection[] => {
+    try {
+      const value = JSON.parse(localStorage.getItem(EXPANDED_SECTIONS_KEY) ?? '[]');
+      return Array.isArray(value) ? value : [];
+    } catch {
+      return [];
+    }
+  };
+  const [expandedSections$, setExpandedSections] = createSignal<SubscriptionsSection[]>(loadExpandedSections());
+  const isExpanded = (section: SubscriptionsSection) => expandedSections$().includes(section);
+  const toggleSection = (section: SubscriptionsSection) => {
+    const next = isExpanded(section) ? expandedSections$().filter(x => x !== section) : [...expandedSections$(), section];
+    setExpandedSections(next);
+    try {
+      localStorage.setItem(EXPANDED_SECTIONS_KEY, JSON.stringify(next));
+    } catch {
+      //Not persisted, still works for this session
+    }
+  };
+  const filterDefaults = filters.map(f => f.active[0]());
+  const sectionBadge = (section: SubscriptionsSection): string | undefined => {
+    switch (section) {
+      case 'creators': {
+        const count = selectedCreators$().length;
+        return count > 0 ? `${count} selected` : undefined;
+      }
+      case 'groups': {
+        const group = selectedGroup$();
+        return group ? subGroups$()?.find(x => x.id === group)?.name ?? "selected" : undefined;
+      }
+      case 'filters': {
+        const changed = filters.filter((f, i) => f.active[0]() !== filterDefaults[i]).length;
+        return changed > 0 ? `${changed} changed` : undefined;
+      }
+    }
+  };
+  const sectionToggles: { section: SubscriptionsSection, name: string }[] = [
+    { section: 'creators', name: 'Creators' },
+    { section: 'groups', name: 'Groups' },
+    { section: 'filters', name: 'Filters' }
+  ];
+
   function toggleFilter(index: number){
     filters[index].active[1](!filters[index].active[0]());
     const pager = currentPager$();
@@ -298,6 +344,33 @@ const SubscriptionsPage: Component = () => {
       <ScrollContainer ref={scrollContainerRef}>
         <Show when={subs$() && subs$()!.length > 0}>
           <div style="flex-shrink: 0; position: relative;">
+            <div class={styles.sectionToggles}>
+              <For each={sectionToggles}>{(toggle, i) =>
+                <div
+                  class={styles.sectionToggle}
+                  classList={{ [styles.expanded]: isExpanded(toggle.section), [styles.hasBadge]: !!sectionBadge(toggle.section) }}
+                  onClick={() => toggleSection(toggle.section)}
+                  use:focusable={{
+                    groupEscapeTo: {
+                      left: ['sidebar'],
+                      up: ['nav-bar'],
+                      down: ['creators', 'subgroups', 'filters']
+                    },
+                    groupId: 'sectiontoggles',
+                    groupType: 'horizontal',
+                    groupIndices: [i()],
+                    onPress: () => toggleSection(toggle.section)
+                  }}
+                >
+                  <span class={styles.sectionToggleArrow}>{isExpanded(toggle.section) ? '▾' : '▸'}</span>
+                  {toggle.name}
+                  <Show when={sectionBadge(toggle.section)}>
+                    <span class={styles.sectionToggleBadge}>{sectionBadge(toggle.section)}</span>
+                  </Show>
+                </div>
+              }</For>
+            </div>
+            <Show when={isExpanded('creators')}>
             <div class={styles.subBar}>
               <For each={subs$()}>{(sub, i) =>
                 <div 
@@ -307,7 +380,8 @@ const SubscriptionsPage: Component = () => {
                   use:focusable={{
                     groupEscapeTo: {
                       left: ['sidebar'],
-                      down: ['subgroups', 'filters']
+                      down: ['subgroups', 'filters'],
+                      up: ['sectiontoggles']
                     },
                     groupId: 'creators',
                     groupIndices: [i()],
@@ -327,7 +401,8 @@ const SubscriptionsPage: Component = () => {
                 </div>
               }</For>
             </div>
-            <Show when={!hasSubGroups$() && StateGlobal.settings$().object.subscriptions?.showSubscriptionGroups}>
+            </Show>
+            <Show when={isExpanded('groups') && !hasSubGroups$() && StateGlobal.settings$().object.subscriptions?.showSubscriptionGroups}>
               <div class={styles.subgroupBanner}>
                 <div class={styles.bannerText}>
                   <div class={styles.bannerTitle}>
@@ -345,7 +420,7 @@ const SubscriptionsPage: Component = () => {
                       groupEscapeTo: {
                         left: ['sidebar'],
                         down: ['filters'],
-                        up: ['creators']
+                        up: ['creators', 'sectiontoggles']
                       },
                       groupId: 'subgroups',
                       groupType: 'horizontal',
@@ -357,7 +432,7 @@ const SubscriptionsPage: Component = () => {
                       groupEscapeTo: {
                         left: ['sidebar'],
                         down: ['filters'],
-                        up: ['creators']
+                        up: ['creators', 'sectiontoggles']
                       },
                       groupId: 'subgroups',
                       groupType: 'horizontal',
@@ -366,7 +441,7 @@ const SubscriptionsPage: Component = () => {
                 </div>
               </div>
             </Show>
-            <Show when={hasSubGroups$()}>
+            <Show when={isExpanded('groups') && hasSubGroups$()}>
               <div class={styles.subgroups}>
                 <For each={subGroups$()}>{(subGroup: ISubscriptionGroup, i: Accessor<number>) => (
                   <div
@@ -377,7 +452,7 @@ const SubscriptionsPage: Component = () => {
                       groupEscapeTo: {
                         left: ['sidebar'],
                         down: ['filters'],
-                        up: ['creators']
+                        up: ['creators', 'sectiontoggles']
                       },
                       groupId: 'subgroups',
                       groupType: 'horizontal',
@@ -407,7 +482,7 @@ const SubscriptionsPage: Component = () => {
                     groupEscapeTo: {
                       left: ['sidebar'],
                       down: ['filters'],
-                      up: ['creators']
+                      up: ['creators', 'sectiontoggles']
                     },
                     groupId: 'subgroups',
                     groupType: 'horizontal',
@@ -420,7 +495,7 @@ const SubscriptionsPage: Component = () => {
                 </div>
               </div>
             </Show>
-            <Show when={!!filters}>
+            <Show when={isExpanded('filters')}>
               <div class={styles.filters}>
                 <For each={filters}>{(filter, i) =>
                   <div 
@@ -430,7 +505,7 @@ const SubscriptionsPage: Component = () => {
                     use:focusable={{
                       groupEscapeTo: {
                         left: ['sidebar'],
-                        up: ['subgroups', 'creators']
+                        up: ['subgroups', 'creators', 'sectiontoggles']
                       },
                       groupId: 'filters',
                       groupType: 'horizontal',

@@ -52,6 +52,8 @@ namespace Grayjay.ClientServer
                 PackageBridge.AppVersion = Constants.App.Version;
 
             var builder = WebApplication.CreateBuilder();
+            //Bluejay: don't wait the default 30s for open requests (UI websocket, video streams) when quitting
+            builder.Services.Configure<Microsoft.Extensions.Hosting.HostOptions>(o => o.ShutdownTimeout = TimeSpan.FromSeconds(2));
             builder.WebHost.ConfigureKestrel(serverOptions =>
             {
                 if (ServerMode)

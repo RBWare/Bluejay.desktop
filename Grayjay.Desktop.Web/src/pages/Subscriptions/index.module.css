@@ -336,3 +336,44 @@
 .noSubs .buttons {
     margin-top: 28px;
 }
+/* Bluejay: collapsible section toolbar (Creators / Groups / Filters) */
+.sectionToggles {
+    display: flex;
+    gap: 8px;
+    margin: 4px 24px 12px 24px;
+}
+.sectionToggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: 1px solid #454545;
+    background: #1B1B1B;
+    color: #b4b4b4;
+    font-family: Inter;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.sectionToggle:focus {
+    background: #474747;
+    color: white;
+}
+.sectionToggle.expanded {
+    background: #2E2E2E;
+    color: white;
+}
+.sectionToggle.hasBadge {
+    border-color: #0182E7;
+}
+.sectionToggleArrow {
+    font-size: 12px;
+    width: 10px;
+}
+.sectionToggleBadge {
+    font-size: 12px;
+    font-weight: 500;
+    color: #01D6E6;
+}

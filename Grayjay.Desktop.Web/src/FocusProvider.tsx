@@ -86,6 +86,42 @@ export function FocusProvider(props: { children: JSX.Element }) {
         return iso ? iso : is;
     });
     const isControllerMode = createMemo(() => lastInputSource() !== "pointer");
+
+    //Bluejay: the UI is keyboard/controller only (TV). With a non-pointer input source override (the default, see
+    //Program.cs) all mouse input is swallowed and the cursor hidden; --input-source=pointer brings the mouse back.
+    const mouseDisabled = createMemo(() => {
+        const iso = inputSourceOverride();
+        return !!iso && iso !== "pointer";
+    });
+    const MOUSE_EVENTS = ["mousedown", "mouseup", "click", "dblclick", "auxclick", "contextmenu", "pointerdown", "pointerup", "wheel", "dragstart"];
+    const blockMouse = (e: Event) => {
+        //Clicks produced by the keyboard or by code have no click count, only swallow real mouse buttons
+        if ((e.type === "click" || e.type === "dblclick") && (!e.isTrusted || (e as MouseEvent).detail === 0))
+            return;
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        //Some air mice send their Back button as a right click or the mouse "back" button, keep that working as Back
+        if (e.type === "mouseup" && ((e as MouseEvent).button === 2 || (e as MouseEvent).button === 3))
+            press('back', "keyboard");
+        //In air-mouse mode remotes (e.g. WeChip W3) send OK/Enter as a left click, so a click acts like Enter on the
+        //selected item (once per click, the follow-up dblclick of a quick double press is ignored)
+        if (e.type === "click" && (e as MouseEvent).button === 0) {
+            ensureFocusInActiveScope();
+            press('press', "keyboard");
+        }
+    };
+    createEffect(() => {
+        if (!mouseDisabled())
+            return;
+        document.body.setAttribute("data-mouse-disabled", "");
+        for (const type of MOUSE_EVENTS)
+            window.addEventListener(type, blockMouse, { capture: true, passive: false });
+        onCleanup(() => {
+            document.body.removeAttribute("data-mouse-disabled");
+            for (const type of MOUSE_EVENTS)
+                window.removeEventListener(type, blockMouse, { capture: true } as any);
+        });
+    });
     createEffect(() => console.info("lastInputSource changed", lastInputSource()));
     const [focusedNode, setFocusedNode] = createSignal<NodeEntry | undefined>(undefined);
     const trapStack: string[] = [];
@@ -1270,13 +1306,9 @@ export function FocusProvider(props: { children: JSX.Element }) {
     function back(): boolean {
         const state = video?.state();
         console.log("back", {state, history, location, pathname: location.pathname});
-        if (state === VideoState.Fullscreen) {
-            video!.actions.setState(VideoState.Maximized);
-            return true;
-        } else if (state === VideoState.Maximized) {
-            video!.actions.setState(VideoState.Minimized);
-            return true;
-        } else if (state === VideoState.Minimized) {
+        //Bluejay: like TV YouTube apps, Back exits an open video in one press and returns to where it was opened from
+        //(was fullscreen -> maximized -> minimized -> closed)
+        if (state === VideoState.Fullscreen || state === VideoState.Maximized || state === VideoState.Minimized) {
             video!.actions.closeVideo();
             return true;
         }
@@ -1288,6 +1320,7 @@ export function FocusProvider(props: { children: JSX.Element }) {
             "/web/home",
             "/web/index",
             "/web/subscriptions",
+            "/web/foryou",
             "/web/creators",
             "/web/playlists",
             "/web/watchLater",
@@ -1411,6 +1444,11 @@ export function FocusProvider(props: { children: JSX.Element }) {
         if (dir === 'up') return el.value.slice(0, start).includes('\n');
         return el.value.slice(end).includes('\n');
     }
+    function isRemoteBackKey(e: KeyboardEvent) {
+        return e.key === 'BrowserBack' || e.key === 'GoBack' || e.key === 'BrowserHome'
+            || e.keyCode === 166 /* VK_BROWSER_BACK */ || e.keyCode === 172 /* VK_BROWSER_HOME */;
+    }
+
     function isTypingKey(e: KeyboardEvent) {
         if (e.key.length === 1) return true;
         return ['Backspace','Delete','Home','End','PageUp','PageDown'].includes(e.key);
@@ -1450,6 +1488,15 @@ export function FocusProvider(props: { children: JSX.Element }) {
         const trap = topTrap();
         const target = e.target as HTMLElement | null;
         const editable = isEditable(e.target);
+
+        //Bluejay: TV remotes / air mice (e.g. WeChip W3) send a browser Back or Home key for their Back button,
+        //treat those (and Backspace outside text fields) exactly like Escape
+        if (isRemoteBackKey(e) || (e.key === 'Backspace' && !editable)) {
+            e.preventDefault();
+            e.stopPropagation();
+            press('back', "keyboard");
+            return;
+        }
 
         const isNavKey =
             e.key === 'ArrowUp' || e.key === 'ArrowDown' ||

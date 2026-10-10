@@ -20,7 +20,7 @@ import StateWebsocket from '../../../state/StateWebsocket';
 import Globals from '../../../globals';
 import { clearLiveChatOnSeek } from '../../../state/StateLiveChat';
 import { focusable } from '../../../focusable'; void focusable;
-import { FocusableOptions, InputSource } from '../../../nav';
+import { Direction, FocusableOptions, InputSource } from '../../../nav';
 import { SettingsBackend } from '../../../backend/SettingsBackend';
 
 // dash.js error payloads can reference themselves (a segment request carries its representation), which JSON.stringify rejects.
@@ -91,6 +91,13 @@ interface VideoProps {
     onVerifyToggle?: (arg: boolean)=>boolean;
     resumePosition?: Duration;
     loaderUI?: JSX.Element;
+    /** Rendered over the video (also in fullscreen), independent of the auto-hiding controls. */
+    overlay?: JSX.Element;
+    /** Lets an overlay take Enter / Back while the player is focused, return true when handled. */
+    onPressIntercept?: () => boolean;
+    onBackIntercept?: () => boolean;
+    /** Lets an overlay take arrow keys while the player is focused (e.g. choosing between its buttons). */
+    onDirectionIntercept?: (dir: Direction) => boolean;
     fullscreen?: boolean;
     focusable?: boolean;
     onOptions?: (el: HTMLElement, inputSource: InputSource) => void;
@@ -1437,10 +1444,17 @@ const VideoPlayerView: Component<VideoProps> = (props) => {
             return undefined;
 
         return {
-            onPress: togglePlay,
+            onPress: () => {
+                if (props.onPressIntercept?.())
+                    return;
+                togglePlay();
+            },
             onPressLabel: "Toggle Playback",
+            onBack: () => (props.onBackIntercept?.() ? true : undefined),
             onOptions: props.onOptions,
             onDirection: (el, dir, inputSource) => {
+                if (props.onDirectionIntercept?.(dir))
+                    return true;
                 switch (dir) {
                     case 'left':
                         void seek(Duration.fromMillis(Math.max(Math.min(duration().toMillis(), position().toMillis() - 5000), 0)));
@@ -1633,6 +1647,8 @@ const VideoPlayerView: Component<VideoProps> = (props) => {
                     {props.loaderUI}
                 </Show>
             </Show>
+
+            {props.overlay}
 
             <Show when={props.resumePosition && resumePositionVisible()}>
                 <div class={styles.resumeButton} onClick={async () => {

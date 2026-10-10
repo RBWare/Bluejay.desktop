@@ -19,6 +19,31 @@ namespace Grayjay.ClientServer.Settings
             public int AppLanguage { get; set; } = 0;
         }
 
+        //Bluejay: the app runs on a PC connected to a TV, so the whole interface is scaled up for viewing from a distance
+        [SettingsField("Interface", "group", "Adjust the interface for viewing on a TV", 1)]
+        public InterfaceSettings Interface { get; set; } = new InterfaceSettings();
+        public class InterfaceSettings
+        {
+            [SettingsField("Interface Size", SettingsField.DROPDOWN, "Scales the whole interface, larger sizes are easier to read from across the room", 0)]
+            [SettingsDropdownOptions("100%", "125%", "150%", "175%", "200%")]
+            public int InterfaceScale { get; set; } = 2;
+
+            public double GetScaleFactor() => InterfaceScale switch
+            {
+                0 => 1.0,
+                1 => 1.25,
+                2 => 1.5,
+                3 => 1.75,
+                4 => 2.0,
+                _ => 1.5
+            };
+
+            /// <summary>
+            /// Chromium zoom levels are logarithmic, the page is scaled by 1.2^level.
+            /// </summary>
+            public double GetZoomLevel() => Math.Log(GetScaleFactor()) / Math.Log(1.2);
+        }
+
         //Home
         public HomeSettings Home { get; set; } = new HomeSettings();
         public class HomeSettings
@@ -209,6 +234,9 @@ namespace Grayjay.ClientServer.Settings
 
             [SettingsField("Live Chat Webview", SettingsField.TOGGLE, "Use the live chat web window when available over the native window", 9)]
             public bool UseLiveChatWindow { get; set; } = true;
+
+            [SettingsField("Autoplay Next Video", SettingsField.TOGGLE, "Near the end of a video, show what plays next (from the same section, or a recommendation) and play it automatically unless cancelled", 11)]
+            public bool AutoplayNext { get; set; } = true;
 
             [SettingsField("Native UMP Playback", SettingsField.TOGGLE, "Allow plugins to provide native UMP (SABR) streams. Plugins may need a reload after changing this.", 10)]
             public bool NativeUmp { get; set; } = true;

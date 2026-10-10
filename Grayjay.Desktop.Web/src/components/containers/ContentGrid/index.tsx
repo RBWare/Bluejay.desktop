@@ -84,6 +84,9 @@ const ContentGrid: Component<ContentGridProps> = (props) => {
         }
     }
 
+    //The grid's videos, so the player can autoplay the next one from this same section
+    const sectionVideos = () => (props.pager?.dataFiltered ?? []).filter(x => x.contentType === ContentType.MEDIA) as IPlatformVideo[];
+
     const [settingsContent$, setSettingsContent] = createSignal<IPlatformContent>();
     const [settingsMenuInputSource$, setSettingsMenuInputSource] = createSignal<InputSource>();
     const settingsMenu$ = createMemo(() => {
@@ -309,7 +312,7 @@ const ContentGrid: Component<ContentGridProps> = (props) => {
                                         onPress: () => {
                                             const url = item().backendUrl ?? item().url;
                                             if (url)
-                                                video?.actions.openVideo(item() as IPlatformVideo, undefined, VideoState.Fullscreen);
+                                                video?.actions.openVideo(item() as IPlatformVideo, undefined, VideoState.Fullscreen, sectionVideos);
                                         },
                                         onOptions: (e, inputSource) => {
                                             onSettingsClicked(e, item(), inputSource);
@@ -319,7 +322,7 @@ const ContentGrid: Component<ContentGridProps> = (props) => {
                                     onClick={() => {
                                         const url = item().backendUrl ?? item().url;
                                         if (url)
-                                            video?.actions.openVideo(item() as IPlatformVideo);
+                                            video?.actions.openVideo(item() as IPlatformVideo, undefined, undefined, sectionVideos);
                                         }} />
                             </Show>
                             <Show when={item()?.contentType == ContentType.POST}>
