@@ -26,9 +26,13 @@ code {
   outline-offset: -4px;
 }
 
-/* Bluejay: mouse disabled (TV mode), no cursor, hover effects or pointer targeting anywhere in the UI */
-body[data-mouse-disabled],
-body[data-mouse-disabled] * {
+/* Bluejay: mouse disabled (TV mode), no cursor, hover effects or pointer targeting anywhere in the UI.
+   The root element and fullscreen backdrops are covered too: with every element ignoring the pointer, a fullscreen
+   video leaves the cursor over the backdrop / <html>, which would otherwise show the default arrow. */
+html[data-mouse-disabled],
+html[data-mouse-disabled] *,
+html[data-mouse-disabled] ::backdrop,
+html[data-mouse-disabled] *::backdrop {
   cursor: none !important;
 }
 body[data-mouse-disabled] * {

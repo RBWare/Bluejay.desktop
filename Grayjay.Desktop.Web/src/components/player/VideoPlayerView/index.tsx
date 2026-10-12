@@ -661,7 +661,8 @@ const VideoPlayerView: Component<VideoProps> = (props) => {
         const pos_ms = pos.as('milliseconds');
         const res_ms = resumePosition.as('milliseconds');
         const dur_ms = dur.as('milliseconds');
-        const visible = res_ms > 60000 && dur_ms - res_ms > 5000 && res_ms - pos_ms > 5000 && pos_ms < 8000;
+        //Bluejay: offered for 15s (was 8s) so there is time to react with a TV remote
+        const visible = res_ms > 60000 && dur_ms - res_ms > 5000 && res_ms - pos_ms > 5000 && pos_ms < 15000;
         //console.log("resumePosition", { a: res_ms > 60000, b: dur_ms - res_ms > 5000, c: res_ms - pos_ms > 5000, d: pos_ms < 8000, res_ms, dur_ms, pos_ms });
         setResumePositionVisible(visible);
     });
@@ -1447,6 +1448,11 @@ const VideoPlayerView: Component<VideoProps> = (props) => {
             onPress: () => {
                 if (props.onPressIntercept?.())
                     return;
+                //Bluejay: while "Resume at" is offered, OK/Enter resumes (the prompt can't be reached with the arrow keys)
+                if (props.resumePosition && resumePositionVisible()) {
+                    void seek(props.resumePosition);
+                    return;
+                }
                 togglePlay();
             },
             onPressLabel: "Toggle Playback",
@@ -1651,12 +1657,13 @@ const VideoPlayerView: Component<VideoProps> = (props) => {
             {props.overlay}
 
             <Show when={props.resumePosition && resumePositionVisible()}>
-                <div class={styles.resumeButton} onClick={async () => {
+                <div class={styles.resumeButton} classList={{ [styles.resumeButtonSelected]: true }} onClick={async () => {
                     if (props.resumePosition) {
                         await seek(props.resumePosition);
                     }
                 }}>
                     Resume at {formatDuration(props.resumePosition!)}
+                    <span class={styles.resumeHint}>· press OK</span>
                 </div>
             </Show>
 

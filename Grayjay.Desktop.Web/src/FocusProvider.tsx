@@ -114,10 +114,12 @@ export function FocusProvider(props: { children: JSX.Element }) {
         if (!mouseDisabled())
             return;
         document.body.setAttribute("data-mouse-disabled", "");
+        document.documentElement.setAttribute("data-mouse-disabled", "");
         for (const type of MOUSE_EVENTS)
             window.addEventListener(type, blockMouse, { capture: true, passive: false });
         onCleanup(() => {
             document.body.removeAttribute("data-mouse-disabled");
+            document.documentElement.removeAttribute("data-mouse-disabled");
             for (const type of MOUSE_EVENTS)
                 window.removeEventListener(type, blockMouse, { capture: true } as any);
         });
@@ -1495,6 +1497,15 @@ export function FocusProvider(props: { children: JSX.Element }) {
             e.preventDefault();
             e.stopPropagation();
             press('back', "keyboard");
+            return;
+        }
+
+        //Bluejay: the remote's options (☰) button sends the keyboard Menu / context-menu key, open the selected item's
+        //options menu like a right click would (same as the existing 'o' shortcut). Shift+F10 is Windows' equivalent.
+        if (e.key === 'ContextMenu' || e.keyCode === 93 /* VK_APPS */ || (e.key === 'F10' && e.shiftKey)) {
+            e.preventDefault();
+            e.stopPropagation();
+            press('options', "keyboard");
             return;
         }
 
